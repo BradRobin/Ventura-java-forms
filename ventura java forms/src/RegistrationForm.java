@@ -22,18 +22,26 @@ public class RegistrationForm extends JFrame {
     private static final String PASSWORD = "your_password";
 
     public RegistrationForm() {
+
+        // Set up the frame properties
+
         setTitle("Registration Form");
         setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Create a title label
+        // Creates and adds the title label at the top of the frame
+
         JLabel titleLabel = new JLabel("Registration Form", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.BLUE);
         add(titleLabel, BorderLayout.NORTH);
 
+        // Creates and adds the table panel to the east side of the frame
+
         JPanel formPanel = createFormPanel();
         add(formPanel, BorderLayout.CENTER);
+
+        // Finalize frame setup
 
         JPanel tablePanel = createTablePanel();
         add(tablePanel, BorderLayout.EAST);
@@ -50,9 +58,12 @@ public class RegistrationForm extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Set a custom font for labels and text fields
+        // Sets a custom font for labels and text fields
+
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font textFont = new Font("Arial", Font.PLAIN, 14);
+
+        // Creates and configures form components
 
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setFont(labelFont);
@@ -76,6 +87,8 @@ public class RegistrationForm extends JFrame {
 
         JLabel dobLabel = new JLabel("DOB:");
         dobLabel.setFont(labelFont);
+
+        // Create and populate date of birth dropdowns
 
         String[] days = new String[31];
         for (int i = 1; i <= 31; i++) {
@@ -101,14 +114,20 @@ public class RegistrationForm extends JFrame {
         addressField = new JTextField(20);
         addressField.setFont(textFont);
 
+        // Checkbox for terms and conditions
+
         termsCheckBox = new JCheckBox("Accept Terms And Conditions.");
         termsCheckBox.setFont(textFont);
+
+        // Create buttons and set their fonts
 
         submitButton = new JButton("Submit");
         resetButton = new JButton("Reset");
 
         submitButton.setFont(textFont);
         resetButton.setFont(textFont);
+
+        // Add components to the panel using GridBagLayout
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -155,6 +174,7 @@ public class RegistrationForm extends JFrame {
         gbc.gridx = 2;
         panel.add(resetButton, gbc);
 
+        // Adds action listeners for the buttons
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -176,6 +196,8 @@ public class RegistrationForm extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
+        // Create and set up the table model
+
         tableModel = new DefaultTableModel();
         tableModel.addColumn("ID");
         tableModel.addColumn("Name");
@@ -183,9 +205,13 @@ public class RegistrationForm extends JFrame {
         tableModel.addColumn("Address");
         tableModel.addColumn("Contact");
 
+        // Create and style the table
+
         dataTable = new JTable(tableModel);
         styleTable(dataTable);
         JScrollPane scrollPane = new JScrollPane(dataTable);
+
+        // Add the table to the panel
 
         panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -193,14 +219,21 @@ public class RegistrationForm extends JFrame {
     }
 
     private void styleTable(JTable table) {
+
+        // Set table row height and font
+
         table.setRowHeight(25);
         table.setFont(new Font("Arial", Font.PLAIN, 14));
         table.setGridColor(Color.LIGHT_GRAY);
+
+        // Style the table header
 
         JTableHeader header = table.getTableHeader();
         header.setFont(new Font("Arial", Font.BOLD, 16));
         header.setBackground(Color.LIGHT_GRAY);
         header.setForeground(Color.BLACK);
+
+        // Centre-align table cell contents
 
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
         cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -208,10 +241,15 @@ public class RegistrationForm extends JFrame {
     }
 
     private void handleSubmit() {
+
+        // Ensures conditions and terms are accpeted
+
         if (!termsCheckBox.isSelected()) {
             JOptionPane.showMessageDialog(this, "You must accept the terms and conditions.");
             return;
         }
+
+        // Gather form data
 
         String name = nameField.getText();
         String phone = phoneField.getText();
@@ -219,6 +257,8 @@ public class RegistrationForm extends JFrame {
         String dob = yearBox.getSelectedItem() + "-" + (monthBox.getSelectedIndex() + 1) + "-"
                 + dayBox.getSelectedItem();
         String address = addressField.getText();
+
+        // Generate unique ID and show confirmation dialog
 
         int uniqueId = generateUniqueId();
 
@@ -232,6 +272,8 @@ public class RegistrationForm extends JFrame {
     private int generateUniqueId() {
         int uniqueId = -1;
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            // Query to get the next auto-increment ID
+
             String sql = "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'registration_db' AND TABLE_NAME = 'users'";
             try (Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery(sql)) {
@@ -246,8 +288,13 @@ public class RegistrationForm extends JFrame {
     }
 
     private void showConfirmationDialog(int id, String name, String phone, String gender, String dob, String address) {
+
+        // Create and congifure the confirmtion dialog
+
         JDialog confirmationDialog = new JDialog(this, "Confirm Details", true);
         confirmationDialog.setLayout(new BorderLayout());
+
+        // Set up table model for confirmation dialog
 
         DefaultTableModel confirmTableModel = new DefaultTableModel();
         confirmTableModel.addColumn("ID");
@@ -257,6 +304,7 @@ public class RegistrationForm extends JFrame {
         confirmTableModel.addColumn("Address");
         confirmTableModel.addColumn("Contact");
 
+        // Create and populate the confirmation table
         JTable confirmTable = new JTable(confirmTableModel);
         confirmTableModel.addRow(new Object[] { id, name, gender, dob, address, phone });
         styleTable(confirmTable);
@@ -264,6 +312,7 @@ public class RegistrationForm extends JFrame {
         JScrollPane scrollPane = new JScrollPane(confirmTable);
         confirmationDialog.add(scrollPane, BorderLayout.CENTER);
 
+        // Create and add buttons to the dialog
         JPanel buttonPanel = new JPanel();
         JButton registerButton = new JButton("Register");
         JButton cancelButton = new JButton("Cancel");
@@ -272,6 +321,7 @@ public class RegistrationForm extends JFrame {
         buttonPanel.add(cancelButton);
         confirmationDialog.add(buttonPanel, BorderLayout.SOUTH);
 
+        // Register button action listener
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -286,6 +336,7 @@ public class RegistrationForm extends JFrame {
             }
         });
 
+        // cancel button action listener
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -293,6 +344,7 @@ public class RegistrationForm extends JFrame {
             }
         });
 
+        // Set dialog size and location
         confirmationDialog.setSize(500, 300);
         confirmationDialog.setLocationRelativeTo(this);
         confirmationDialog.setVisible(true);
@@ -323,6 +375,7 @@ public class RegistrationForm extends JFrame {
     }
 
     private void handleReset() {
+        // Reset form fields to thei default values
         nameField.setText("");
         phoneField.setText("");
         addressField.setText("");
