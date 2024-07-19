@@ -1,5 +1,7 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,7 +13,7 @@ public class RegistrationForm extends JFrame {
     private JComboBox<String> dayBox, monthBox, yearBox;
     private JRadioButton maleRadio, femaleRadio;
     private JCheckBox termsCheckBox;
-    private JButton submitButton, resetButton, exitButton, registerButton;
+    private JButton submitButton, resetButton;
     private JTable dataTable;
     private DefaultTableModel tableModel;
 
@@ -23,6 +25,12 @@ public class RegistrationForm extends JFrame {
         setTitle("Registration Form");
         setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create a title label
+        JLabel titleLabel = new JLabel("Registration Form", JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.BLUE);
+        add(titleLabel, BorderLayout.NORTH);
 
         JPanel formPanel = createFormPanel();
         add(formPanel, BorderLayout.CENTER);
@@ -39,38 +47,68 @@ public class RegistrationForm extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
+        // Set a custom font for labels and text fields
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font textFont = new Font("Arial", Font.PLAIN, 14);
+
         JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(labelFont);
         nameField = new JTextField(20);
+        nameField.setFont(textFont);
+
         JLabel phoneLabel = new JLabel("Mobile:");
+        phoneLabel.setFont(labelFont);
         phoneField = new JTextField(20);
+        phoneField.setFont(textFont);
+
         JLabel genderLabel = new JLabel("Gender:");
+        genderLabel.setFont(labelFont);
         maleRadio = new JRadioButton("Male");
         femaleRadio = new JRadioButton("Female");
+        maleRadio.setFont(textFont);
+        femaleRadio.setFont(textFont);
         ButtonGroup genderGroup = new ButtonGroup();
         genderGroup.add(maleRadio);
         genderGroup.add(femaleRadio);
+
         JLabel dobLabel = new JLabel("DOB:");
+        dobLabel.setFont(labelFont);
+
         String[] days = new String[31];
         for (int i = 1; i <= 31; i++) {
             days[i - 1] = String.valueOf(i);
         }
         dayBox = new JComboBox<>(days);
+        dayBox.setFont(textFont);
+
         String[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
         monthBox = new JComboBox<>(months);
+        monthBox.setFont(textFont);
+
         int currentYear = Year.now().getValue();
         String[] years = new String[100];
         for (int i = 0; i < 100; i++) {
             years[i] = String.valueOf(currentYear - i);
         }
         yearBox = new JComboBox<>(years);
+        yearBox.setFont(textFont);
+
         JLabel addressLabel = new JLabel("Address:");
+        addressLabel.setFont(labelFont);
         addressField = new JTextField(20);
+        addressField.setFont(textFont);
+
         termsCheckBox = new JCheckBox("Accept Terms And Conditions.");
+        termsCheckBox.setFont(textFont);
+
         submitButton = new JButton("Submit");
         resetButton = new JButton("Reset");
+
+        submitButton.setFont(textFont);
+        resetButton.setFont(textFont);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -146,33 +184,27 @@ public class RegistrationForm extends JFrame {
         tableModel.addColumn("Contact");
 
         dataTable = new JTable(tableModel);
+        styleTable(dataTable);
         JScrollPane scrollPane = new JScrollPane(dataTable);
 
-        exitButton = new JButton("Exit");
-        registerButton = new JButton("Register");
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(exitButton);
-        buttonPanel.add(registerButton);
-
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
-
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clearForm();
-            }
-        });
-
         panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
 
         return panel;
+    }
+
+    private void styleTable(JTable table) {
+        table.setRowHeight(25);
+        table.setFont(new Font("Arial", Font.PLAIN, 14));
+        table.setGridColor(Color.LIGHT_GRAY);
+
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Arial", Font.BOLD, 16));
+        header.setBackground(Color.LIGHT_GRAY);
+        header.setForeground(Color.BLACK);
+
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+        cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        table.setDefaultRenderer(Object.class, cellRenderer);
     }
 
     private void handleSubmit() {
@@ -188,71 +220,120 @@ public class RegistrationForm extends JFrame {
                 + dayBox.getSelectedItem();
         String address = addressField.getText();
 
-        int uniqueId = storeInDatabase(name, phone, gender, dob, address);
+        int uniqueId = generateUniqueId();
 
         if (uniqueId != -1) {
-            tableModel.addRow(new Object[] { uniqueId, name, gender, address, phone });
-            JOptionPane.showMessageDialog(this, "Record added with ID: " + uniqueId);
+            showConfirmationDialog(uniqueId, name, phone, gender, dob, address);
         } else {
-            JOptionPane.showMessageDialog(this, "Error adding record to database.");
+            JOptionPane.showMessageDialog(this, "Error generating unique ID.");
         }
     }
 
-    private void handleReset() {
-        clearForm();
-    }
-
-    private void clearForm() {
-        nameField.setText("");
-        phoneField.setText("");
-        maleRadio.setSelected(true);
-        dayBox.setSelectedIndex(0);
-        monthBox.setSelectedIndex(0);
-        yearBox.setSelectedIndex(0);
-        addressField.setText("");
-        termsCheckBox.setSelected(false);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new RegistrationForm();
-            }
-        });
-    }
-
-    private int storeInDatabase(String name, String phone, String gender, String dob, String address) {
+    private int generateUniqueId() {
         int uniqueId = -1;
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            System.out.println("Connected to the database");
-
-            String sql = "INSERT INTO users (name, phone, gender, dob, address) VALUES (?, ?, ?, ?, ?)";
-            try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                pstmt.setString(1, name);
-                pstmt.setString(2, phone);
-                pstmt.setString(3, gender);
-                pstmt.setDate(4, Date.valueOf(dob));
-                pstmt.setString(5, address);
-                System.out.println("Executing insert with values: " + name + ", " + phone + ", " + gender + ", " + dob
-                        + ", " + address);
-
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows > 0) {
-                    System.out.println("Insert successful");
-                    try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                        if (rs.next()) {
-                            uniqueId = rs.getInt(1);
-                            System.out.println("Generated ID: " + uniqueId);
-                        }
-                    }
-                } else {
-                    System.out.println("Insert failed");
+            String sql = "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'registration_db' AND TABLE_NAME = 'users'";
+            try (Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql)) {
+                if (rs.next()) {
+                    uniqueId = rs.getInt(1);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return uniqueId;
+    }
+
+    private void showConfirmationDialog(int id, String name, String phone, String gender, String dob, String address) {
+        JDialog confirmationDialog = new JDialog(this, "Confirm Details", true);
+        confirmationDialog.setLayout(new BorderLayout());
+
+        DefaultTableModel confirmTableModel = new DefaultTableModel();
+        confirmTableModel.addColumn("ID");
+        confirmTableModel.addColumn("Name");
+        confirmTableModel.addColumn("Gender");
+        confirmTableModel.addColumn("DOB");
+        confirmTableModel.addColumn("Address");
+        confirmTableModel.addColumn("Contact");
+
+        JTable confirmTable = new JTable(confirmTableModel);
+        confirmTableModel.addRow(new Object[] { id, name, gender, dob, address, phone });
+        styleTable(confirmTable);
+
+        JScrollPane scrollPane = new JScrollPane(confirmTable);
+        confirmationDialog.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        JButton registerButton = new JButton("Register");
+        JButton cancelButton = new JButton("Cancel");
+
+        buttonPanel.add(registerButton);
+        buttonPanel.add(cancelButton);
+        confirmationDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int storedId = storeInDatabase(id, name, phone, gender, dob, address);
+                if (storedId != -1) {
+                    tableModel.addRow(new Object[] { storedId, name, gender, address, phone });
+                    JOptionPane.showMessageDialog(confirmationDialog, "Record added with ID: " + storedId);
+                } else {
+                    JOptionPane.showMessageDialog(confirmationDialog, "Error adding record to database.");
+                }
+                confirmationDialog.dispose();
+            }
+        });
+
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                confirmationDialog.dispose();
+            }
+        });
+
+        confirmationDialog.setSize(500, 300);
+        confirmationDialog.setLocationRelativeTo(this);
+        confirmationDialog.setVisible(true);
+    }
+
+    private int storeInDatabase(int id, String name, String phone, String gender, String dob, String address) {
+        int storedId = -1;
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            String sql = "INSERT INTO users (id, name, phone, gender, dob, address) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                pstmt.setInt(1, id);
+                pstmt.setString(2, name);
+                pstmt.setString(3, phone);
+                pstmt.setString(4, gender);
+                pstmt.setString(5, dob);
+                pstmt.setString(6, address);
+                pstmt.executeUpdate();
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        storedId = generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return storedId;
+    }
+
+    private void handleReset() {
+        nameField.setText("");
+        phoneField.setText("");
+        addressField.setText("");
+        maleRadio.setSelected(true);
+        dayBox.setSelectedIndex(0);
+        monthBox.setSelectedIndex(0);
+        yearBox.setSelectedIndex(0);
+        termsCheckBox.setSelected(false);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new RegistrationForm());
     }
 }
