@@ -322,6 +322,7 @@ public class RegistrationForm extends JFrame {
         confirmationDialog.add(buttonPanel, BorderLayout.SOUTH);
 
         // Register button action listener
+        // present
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
